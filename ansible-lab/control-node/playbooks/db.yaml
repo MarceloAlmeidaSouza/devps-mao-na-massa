@@ -1,0 +1,32 @@
+#Identifica o inicio do arquivo yaml para ansible
+---
+#Nome do playbook
+-   name: Configurar servidor de banco de dados
+#Subitens
+#Hosts 
+    hosts: db01
+#Usuario do host    
+    user: vagrant
+#Como boa parte dos comandos precisam ser em root, o become altera o usuário para root
+    become: yes
+#Diretorio para variaveis, apenas para manter o yaml mais enxuto
+    vars_files:
+        - vars/main.yml
+#Declaraçao de variaveis
+    vars:
+        - dbname: "db01"
+        - dbusername: "root"
+        - dbpassword: "devopsmaonamassa"
+        
+    pre_tasks:
+        - name: Install roles from Ansible Galaxy
+          delegate_to: localhost
+          #local_action: command  ansible-galaxy remove geerlingguy.mysql -p roles
+          local_action: command ansible-galaxy install geerlingguy.mysql -p roles --force
+        
+#Tasks externas
+    roles:
+#Role interna -> roles/configuracao-default-so/main.yml
+        - configuracao-default-so
+#Role de terceiros
+        - role: geerlingguy.mysql

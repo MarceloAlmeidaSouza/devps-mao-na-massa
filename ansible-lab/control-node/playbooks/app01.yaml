@@ -1,0 +1,97 @@
+- name: Configurar servidor de aplicação Java
+  hosts: app01
+  
+  user: vagrant
+  become: yes
+  
+  vars:
+    - dbhost: "db01"
+    - dbname: "notes"
+    - dbusername: "notesapp"
+    - dbpassword: "devopsmaonamassa"
+  tasks:
+    - name: Adicionar usuario de app
+      user:
+        name: app
+        comment: Usuario da aplicação, usuário da mv
+        uid: 500
+        
+    - name: Donwload do maven 
+      get_url:
+        url: https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.1.0/apache-maven-3.1.0-bin.tar.gz
+        dest: /opt/apache-maven-3.1.0-bin.tar.gz
+        
+    - name: Unzip do pacote maven
+      ansible.builtin.unarchive:
+        src: /opt/apache-maven-3.1.0-bin.tar.gz
+        dest: /opt/
+        remote_src: yes
+        
+    - name: Instalaçao do Java
+      yum:
+        name: java-1.8.0-openjdk
+        state: latest
+        
+    - name: Criação do diretório de app
+      file:
+        path: /opt/notes
+        state: directory
+        owner: app
+        group: app
+        
+    - name: Clone do repositório Notes - app
+      git:
+        repo: 'https://github.com/callicoder/spring-boot-mysql-rest-api-tutorial.git'
+        dest: /opt/notes
+        clone: yes
+        force: yes
+        
+    - name: Configurar arquivo pom.xml com repositorios maven central
+      template:
+        src: pom.xml
+        dest: /opt/notes/pom.xml
+        
+    - name: Configurar arquivo de propriedades para camada de banco de dados
+      template:
+        src: application.properties
+        dest: /opt/notes/src/main/resources/application.properties
+        
+    - name: Gerar pacote da aplicação
+      command: /opt/apache-maven-3.1.0/bin/mvn -f /opt/notes/pom.xml package
+      become_user: app
+      
+    - name: Registrar versao atual do pacote
+      #Para executar comandos na mv
+      shell:
+        #Comando para recuperar a versao do java, o comando retorna um output
+        cmd: /opt/apache-maven-3.1.0/bin/mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout
+        #cmd: /opt/apache-maven-3.1.0/bin/mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec
+        #Para mudar de ditetorio
+        chdir: /opt/notes/
+      #Registra a saída do comando em uma variavel
+      register: app_version
+      
+    - name: Configurar serviço do Systemd
+      template:
+        #Interno ao playbook do control-node, reparar o source sem control barra e o com control barra
+        src: etc/systemd/system/notes.service
+        #Maquina de destino com control barra
+        dest: /etc/systemd/system/notes.service
+      notify: reload daemon
+        
+    - name: Iniciar o serviço notes
+      service:
+        name: notes
+        state: restarted
+        
+  roles:
+      - configuracao-default-so
+  handlers:
+    - name: reload app
+      systemd:
+        state: restarted
+        daemon_reload: yes 
+        name: 'notes'
+    - name: reload daemon
+      systemd:
+        daemon_reexec: yes

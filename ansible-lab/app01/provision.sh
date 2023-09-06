@@ -1,0 +1,5 @@
+#/bin/sh
+#Adiciona para dentro do arquivo /home/vagrant/.ssh/authorized_keys a chave de acesso da control-node
+cat << EOT >> /home/vagrant/.ssh/authorized_keys
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCvWmdybbGrxNMRe+DlEsN7IMgFJg2MCGgAHKS4jiV+fZ/sKeIR2EWNFzey8esXlg7kxfCnpk/WnRl3b9BtEFtvhi/rIi9zOtGF/p0d6ZCsZ9A0/Xcw9xS801U9R7SOG1Fw0aFH9z5aE9P+9gM4SR9y9/SLa1XtmllB7CpPoiuhBONrNrMK0tOIAJEbCeYudfVYZbMqZnVUPAXZKQOKH6pqw/cyQjpwHM3sqCxyznvRyoW3dMj/UDOqxaj/3oUPk8N1GP2BzPbRHmMLUkcquCsB0MrrF1aOjAQDTsF1S3IplfhwycoLk+7oejxluCqGWtIBp4htYgRkuqrWJNPqjBNl vagrant@control-node
+EOT

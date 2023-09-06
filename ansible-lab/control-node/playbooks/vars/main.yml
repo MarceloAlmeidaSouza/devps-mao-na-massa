@@ -1,0 +1,15 @@
+#https://galaxy.ansible.com/geerlingguy/mysql
+#https://github.com/geerlingguy/ansible-role-mysql
+
+mysql_root_password: devopsmaonamassa
+mysql_databases:
+  - name: notes
+    encoding: latin1
+    collation: latin1_general_ci
+mysql_users:
+  - name: notesapp
+#Todos os hosts podem acessar este banco
+    host: "%"
+    password: devopsmaonamassa
+#Acesso total a base
+    priv: "notes.*:ALL"

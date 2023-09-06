@@ -1,0 +1,23 @@
+-   name: Upgrade de todos os pacotes do s.o
+#Modulo do ansible para comandos
+    yum:
+#Quais pacotes atualizar, no caso todos '*'
+        name: '*'
+#Qual versão, no caso a ultima
+        state: lastest
+- name: instalacao do git client
+      yum:
+        name: git
+        state: latest
+- name: Configurar hosts lab ansible
+#Adiciona linhas em um arquivo de configurações
+#          lineinfile: line "{{item}}" path=/etc/hosts state=present
+          lineinfile:
+            dest: /etc/hosts
+            state: present
+            line: "{{item}}"
+#Interação dos itens
+          with_items:
+            - 192.168.0.2 control-node
+            - 192.168.0.3 app01
+            - 192.168.0.4 db01
